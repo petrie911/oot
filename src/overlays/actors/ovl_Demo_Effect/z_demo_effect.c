@@ -73,8 +73,8 @@ extern Gfx D_060011D0[]; // lgtShower
 extern Vtx D_06000000[]; // triforceLightColumnVertices
 extern Vtx D_06000060[]; // timewarpVertices
 
-extern TransformUpdateIndex D_06000050; // timewarpTransformUpdateIndex
-extern SkelCurveLimbList D_060012E8;    // timewarpLimbList
+extern CurveAnimationHeader D_06000050; // timewarpCurveAnimationHeader
+extern SkelCurveHeader D_060012E8;    // timewarpLimbList
 
 const ActorInit Demo_Effect_InitVars = {
     ACTOR_DEMO_EFFECT,

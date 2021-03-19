@@ -907,13 +907,13 @@ void Flags_UnsetAllEnv(GlobalContext* globalCtx);
 void Flags_SetEnv(GlobalContext* globalCtx, s16 flag);
 void Flags_UnsetEnv(GlobalContext* globalCtx, s16 flag);
 s32 Flags_GetEnv(GlobalContext* globalCtx, s16 flag);
-f32 func_8006C5A8(f32 target, TransformData* transData, s32 refIdx);
+f32 SkelCurve_GetTransform(f32 target, SkelCurveFrame* transData, s32 refIdx);
 void SkelCurve_Clear(SkelAnimeCurve* skelCurve);
-s32 SkelCurve_Init(GlobalContext* globalCtx, SkelAnimeCurve* skelCurve, SkelCurveLimbList* limbListSeg,
-                   TransformUpdateIndex* transUpdIdx);
+s32 SkelCurve_Init(GlobalContext* globalCtx, SkelAnimeCurve* skelCurve, SkelCurveHeader* limbListSeg,
+                   CurveAnimationHeader* curveAnim);
 void SkelCurve_Destroy(GlobalContext* globalCtx, SkelAnimeCurve* skelCurve);
-void SkelCurve_SetAnim(SkelAnimeCurve* skelCurve, TransformUpdateIndex* transUpdIdx, f32 arg2, f32 animFinalFrame,
-                       f32 animCurFrame, f32 animSpeed);
+void SkelCurve_SetAnim(SkelAnimeCurve* skelCurve, CurveAnimationHeader* curveAnim, f32 arg2, f32 endFrame,
+                       f32 curFrame, f32 playSpeed);
 s32 SkelCurve_Update(GlobalContext* globalCtx, SkelAnimeCurve* skelCurve);
 void SkelCurve_Draw(Actor* actor, GlobalContext* globalCtx, SkelAnimeCurve* skelCurve,
                     OverrideCurveLimbDraw overrideLimbDraw, PostCurveLimbDraw postLimbDraw, s32 lod, void* data);

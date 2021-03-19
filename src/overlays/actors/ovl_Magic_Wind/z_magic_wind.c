@@ -45,7 +45,7 @@ static s16 sCopyValues[] = {
     0x0000, 0x0000, 0x0000, 0x0000, 0x02CD, 0x02CD, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
 };
 
-static TransformData sTransformData[] = {
+static SkelCurveFrame sSkelCurveFrame[] = {
     {
         0x000C,
         0x0001,
@@ -76,8 +76,8 @@ static TransformData sTransformData[] = {
     },
 };
 
-static TransformUpdateIndex sTransformUpdIdx = {
-    sTransformRefIdx, sTransformData, sCopyValues, 0x0001, 0x0003C,
+static CurveAnimationHeader sTransformUpdIdx = {
+    sTransformRefIdx, sSkelCurveFrame, sCopyValues, 0x0001, 0x0003C,
 };
 
 static SkelCurveLimb sRootLimb = {
@@ -113,7 +113,7 @@ static SkelCurveLimb* sLimbs[] = {
     &sOuterCylinder,
 };
 
-static SkelCurveLimbList sLimbList = {
+static SkelCurveHeader sLimbList = {
     sLimbs,
     0x03,
 };

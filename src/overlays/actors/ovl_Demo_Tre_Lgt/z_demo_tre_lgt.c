@@ -15,7 +15,7 @@ void func_80993754(DemoTreLgt* this);
 void func_8099375C(DemoTreLgt* this, GlobalContext* globalCtx);
 void func_809937B4(DemoTreLgt* this, GlobalContext* globalCtx, f32 currentFrame);
 
-extern SkelCurveLimbList D_06005EB8;
+extern SkelCurveHeader D_06005EB8;
 
 typedef struct {
     /* 0x00 */ f32 startFrame;
@@ -41,7 +41,7 @@ const ActorInit Demo_Tre_Lgt_InitVars = {
     (ActorFunc)DemoTreLgt_Draw,
 };
 
-static TransformUpdateIndex* sTransformUpdIdx[] = { 0x06004B60, 0x06004F70 };
+static CurveAnimationHeader* sTransformUpdIdx[] = { 0x06004B60, 0x06004F70 };
 
 static DemoTreLgtActionFunc sActionFuncs[] = {
     func_8099375C,
@@ -97,7 +97,7 @@ void func_809937B4(DemoTreLgt* this, GlobalContext* globalCtx, f32 currentFrame)
 }
 
 void func_80993848(DemoTreLgt* this, GlobalContext* globalCtx) {
-    f32 currentFrame = this->skelCurve.animCurFrame;
+    f32 currentFrame = this->skelCurve.curFrame;
 
     if (currentFrame < sDemoTreLgtInfo[((void)0, gSaveContext.linkAge)].endFrame) {
         this->unk_170 = 255;

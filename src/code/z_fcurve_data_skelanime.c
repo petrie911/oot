@@ -2,31 +2,26 @@
 
 void SkelCurve_Clear(SkelAnimeCurve* skelCurve) {
     skelCurve->limbCount = 0;
-    skelCurve->limbList = NULL;
-    skelCurve->transUpdIdx = NULL;
-    skelCurve->animCurFrame = 0.0f;
-    skelCurve->animSpeed = 0.0f;
-    skelCurve->animFinalFrame = 0.0f;
+    skelCurve->limbs = NULL;
+    skelCurve->curveAnim = NULL;
+    skelCurve->curFrame = 0.0f;
+    skelCurve->playSpeed = 0.0f;
+    skelCurve->endFrame = 0.0f;
     skelCurve->transforms = NULL;
     skelCurve->unk_0C = 0.0f;
 }
 
-s32 SkelCurve_Init(GlobalContext* globalCtx, SkelAnimeCurve* skelCurve, SkelCurveLimbList* limbListSeg,
-                   TransformUpdateIndex* transUpdIdx) {
-    SkelCurveLimb** limbs;
-    SkelCurveLimbList* limbList = SEGMENTED_TO_VIRTUAL(limbListSeg);
+s32 SkelCurve_Init(GlobalContext* globalCtx, SkelAnimeCurve* skelCurve, SkelCurveHeader* skelCurveSeg,
+                   CurveAnimationHeader* curveAnim) {
+    SkelCurveHeader* skelCurveHeader = SEGMENTED_TO_VIRTUAL(skelCurveSeg);
 
-    skelCurve->limbCount = limbList->limbCount;
-    skelCurve->limbList = SEGMENTED_TO_VIRTUAL(limbList->limbs);
+    skelCurve->limbCount = skelCurveHeader->limbCount;
+    skelCurve->limbs = SEGMENTED_TO_VIRTUAL(skelCurveHeader->limbs);
 
     skelCurve->transforms = ZeldaArena_MallocDebug(sizeof(*skelCurve->transforms) * skelCurve->limbCount,
                                                    "../z_fcurve_data_skelanime.c", 125);
-    if (skelCurve->transforms == NULL) {
-        __assert("this->now_joint != NULL", "../z_fcurve_data_skelanime.c", 127);
-    }
-    do {
-        skelCurve->animCurFrame = 0.0f;
-    } while (0);
+    (skelCurve->transforms != NULL) ? (void) 0 : (__assert("this->now_joint != NULL", "../z_fcurve_data_skelanime.c", 127));
+    skelCurve->curFrame = 0.0f;
     return 1;
 }
 
@@ -36,69 +31,71 @@ void SkelCurve_Destroy(GlobalContext* globalCtx, SkelAnimeCurve* skelCurve) {
     }
 }
 
-void SkelCurve_SetAnim(SkelAnimeCurve* skelCurve, TransformUpdateIndex* transUpdIdx, f32 arg2, f32 animFinalFrame,
-                       f32 animCurFrame, f32 animSpeed) {
-    skelCurve->unk_0C = arg2 - skelCurve->animSpeed;
-    skelCurve->animFinalFrame = animFinalFrame;
-    skelCurve->animCurFrame = animCurFrame;
-    skelCurve->animSpeed = animSpeed;
-    skelCurve->transUpdIdx = transUpdIdx;
+void SkelCurve_SetAnim(SkelAnimeCurve* skelCurve, CurveAnimationHeader* curveAnim, f32 arg2, f32 endFrame,
+                       f32 curFrame, f32 playSpeed) {
+    skelCurve->unk_0C = arg2 - skelCurve->playSpeed;
+    skelCurve->endFrame = endFrame;
+    skelCurve->curFrame = curFrame;
+    skelCurve->playSpeed = playSpeed;
+    skelCurve->curveAnim = curveAnim;
 }
 
 s32 SkelCurve_Update(GlobalContext* globalCtx, SkelAnimeCurve* skelCurve) {
-    s16* transforms;
-    u8* transformRefIdx;
-    TransformUpdateIndex* transformIndex;
-    u16* transformCopyValues;
+    CurveAnimationHeader* curveAnim;
+    u8* animRefIndex;
+    SkelCurveFrame* keyFrames;
+    u16* staticData;
     s32 i;
-    s32 ret = 0;
-    s32 k;
-    TransformData* transData;
-    f32 transformValue;
-    s32 j;
+    s32 finished = false;
+    s16* transforms;    
 
-    transformIndex = SEGMENTED_TO_VIRTUAL(skelCurve->transUpdIdx);
-    transformRefIdx = SEGMENTED_TO_VIRTUAL(transformIndex->refIndex);
-    transData = SEGMENTED_TO_VIRTUAL(transformIndex->transformData);
-    transformCopyValues = SEGMENTED_TO_VIRTUAL(transformIndex->copyValues);
+    curveAnim = SEGMENTED_TO_VIRTUAL(skelCurve->curveAnim);
+    animRefIndex = SEGMENTED_TO_VIRTUAL(curveAnim->refIndex);
+    keyFrames = SEGMENTED_TO_VIRTUAL(curveAnim->keyFrames);
+    staticData = SEGMENTED_TO_VIRTUAL(curveAnim->staticData);
     transforms = (s16*)skelCurve->transforms;
 
-    skelCurve->animCurFrame += skelCurve->animSpeed * R_UPDATE_RATE * 0.5f;
+    skelCurve->curFrame += skelCurve->playSpeed * R_UPDATE_RATE * 0.5f;
 
-    if ((skelCurve->animSpeed >= 0.0f && skelCurve->animCurFrame > skelCurve->animFinalFrame) ||
-        (skelCurve->animSpeed < 0.0f && skelCurve->animCurFrame < skelCurve->animFinalFrame)) {
-        skelCurve->animCurFrame = skelCurve->animFinalFrame;
-        ret = 1;
+    if (((skelCurve->playSpeed >= 0.0f) && (skelCurve->curFrame > skelCurve->endFrame)) ||
+        ((skelCurve->playSpeed < 0.0f) && (skelCurve->curFrame < skelCurve->endFrame))) {
+        skelCurve->curFrame = skelCurve->endFrame;
+        finished = true;
     }
 
     for (i = 0; i < skelCurve->limbCount; i++) {
+        s32 j;
+        s32 k;
+
         for (j = 0; j < 3; j++) {
-            for (k = 0; k < 3; k++, transformRefIdx++, transforms++) {
-                if (*transformRefIdx == 0) {
-                    transformValue = *transformCopyValues;
-                    *transforms = transformValue;
-                    transformCopyValues++;
+            for (k = 0; k < 3; k++, animRefIndex++, transforms++) {
+                if (*animRefIndex == 0) {
+                    f32 transformData = *staticData;
+
+                    staticData++;
+                    *transforms = transformData;
                 } else {
-                    transformValue = func_8006C5A8(skelCurve->animCurFrame, transData, *transformRefIdx);
-                    transData += *transformRefIdx;
+                    f32 transformData = SkelCurve_GetTransform(skelCurve->curFrame, keyFrames, *animRefIndex);
+
+                    keyFrames += *animRefIndex;
                     if (j == 0) {
-                        *transforms = transformValue * 1024.0f;
+                        *transforms = transformData * 1024.0f;
                     } else if (j == 1) {
-                        *transforms = transformValue * (32768.0f / 180.0f);
+                        *transforms = transformData * (32768.0f / 180.0f);
                     } else {
-                        *transforms = transformValue * 100.0f;
+                        *transforms = transformData * 100.0f;
                     }
                 }
             }
         }
     }
 
-    return ret;
+    return finished;
 }
 
 void SkelCurve_DrawLimb(GlobalContext* globalCtx, s32 limbIndex, SkelAnimeCurve* skelCurve,
                         OverrideCurveLimbDraw overrideLimbDraw, PostCurveLimbDraw postLimbDraw, s32 lod, void* data) {
-    SkelCurveLimb* limb = SEGMENTED_TO_VIRTUAL(skelCurve->limbList[limbIndex]);
+    SkelCurveLimb* limb = SEGMENTED_TO_VIRTUAL(skelCurve->limbs[limbIndex]);
 
     OPEN_DISPS(globalCtx->state.gfxCtx, "../z_fcurve_data_skelanime.c", 279);
 
@@ -161,14 +158,14 @@ void SkelCurve_DrawLimb(GlobalContext* globalCtx, s32 limbIndex, SkelAnimeCurve*
         postLimbDraw(globalCtx, skelCurve, limbIndex, data);
     }
 
-    if (limb->firstChildIdx != LIMB_DONE) {
-        SkelCurve_DrawLimb(globalCtx, limb->firstChildIdx, skelCurve, overrideLimbDraw, postLimbDraw, lod, data);
+    if (limb->child != LIMB_DONE) {
+        SkelCurve_DrawLimb(globalCtx, limb->child, skelCurve, overrideLimbDraw, postLimbDraw, lod, data);
     }
 
     Matrix_Pop();
 
-    if (limb->nextLimbIdx != LIMB_DONE) {
-        SkelCurve_DrawLimb(globalCtx, limb->nextLimbIdx, skelCurve, overrideLimbDraw, postLimbDraw, lod, data);
+    if (limb->sibling != LIMB_DONE) {
+        SkelCurve_DrawLimb(globalCtx, limb->sibling, skelCurve, overrideLimbDraw, postLimbDraw, lod, data);
     }
 
     CLOSE_DISPS(globalCtx->state.gfxCtx, "../z_fcurve_data_skelanime.c", 371);

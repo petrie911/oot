@@ -1,39 +1,45 @@
 #include "global.h"
 
-f32 func_8006C510(f32 arg0, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5) {
-    char pad[0x1C];
-    f32 sq = SQ(arg0);
-    f32 cube = sq * arg0;
+#define SKELCURVE_NO_INTERP (1 << 0)
+#define SKELCURVE_LERP (1 << 1)
 
-    return (((cube + cube) - sq * 3.0f) + 1.0f) * arg2 + (sq * 3.0f - (cube + cube)) * arg3 +
-           ((cube - (sq + sq)) + arg0) * arg4 * arg1 + (cube - sq) * arg5 * arg1;
+f32 SkelCurve_CubicInterp(f32 x, f32 velScale, f32 start, f32 end, f32 startVel, f32 endVel) {
+    f32 x2 = x * x;
+    f32 x3 = x * x * x;
+    f32 pad[7];
+    
+
+    return (x3 * 2.0f - x2 * 3.0f + 1.0f) * start + (x2 * 3.0f - x3 * 2.0f) * end +
+           (x3 - x2 * 2.0f + x) * startVel * velScale + (x3 - x2) * endVel * velScale;
 }
 
-f32 func_8006C5A8(f32 target, TransformData* transData, s32 refIdx) {
+#define F32_INTERP_WEIGHT(val, start, end) (((f32)(val) - (f32)(start)) / ((f32)(end) - (f32)(start)))
+
+f32 SkelCurve_GetTransform(f32 frame, SkelCurveFrame* keyFrames, s32 frameCount) {
     s32 i;
     s32 j;
 
-    if (target <= transData->unk_02) {
-        return transData->unk_08;
+    if (frame <= keyFrames[0].frame) {
+        return keyFrames[0].value;
     }
-    if (target >= transData[refIdx - 1].unk_02) {
-        return transData[refIdx - 1].unk_08;
+    if (frame >= keyFrames[frameCount - 1].frame) {
+        return keyFrames[frameCount - 1].value;
     }
 
     for (i = 0;; i++) {
         j = i + 1;
-        if (transData[j].unk_02 > target) {
-            if (transData[i].unk_00 & 1) {
-                return transData[i].unk_08;
-            } else if (transData[i].unk_00 & 2) {
-                return transData[i].unk_08 +
-                       ((target - (f32)transData[i].unk_02) / ((f32)transData[j].unk_02 - (f32)transData[i].unk_02)) *
-                           (transData[j].unk_08 - transData[i].unk_08);
+        if (keyFrames[j].frame > frame) {
+            if (keyFrames[i].flags & SKELCURVE_NO_INTERP) {
+                return keyFrames[i].value;
+            } else if (keyFrames[i].flags & SKELCURVE_LERP) {
+                return keyFrames[i].value + F32_INTERP_WEIGHT(frame, keyFrames[i].frame, keyFrames[j].frame) *
+                           (keyFrames[j].value - keyFrames[i].value);
             } else {
-                f32 diff = (f32)transData[j].unk_02 - (f32)transData[i].unk_02;
-                return func_8006C510((target - transData[i].unk_02) / ((f32)transData[j].unk_02 - transData[i].unk_02),
-                                     diff * (1.0f / 30.0f), transData[i].unk_08, transData[j].unk_08,
-                                     transData[i].unk_06, transData[j].unk_04);
+                f32 diff = (f32)keyFrames[j].frame - (f32)keyFrames[i].frame;
+
+                return SkelCurve_CubicInterp(F32_INTERP_WEIGHT(frame, keyFrames[i].frame, keyFrames[j].frame),
+                                     diff * (1.0f / 30.0f), keyFrames[i].value, keyFrames[j].value,
+                                     keyFrames[i].startVel, keyFrames[j].endVel);
             }
         }
     }
