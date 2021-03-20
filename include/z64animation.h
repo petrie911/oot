@@ -127,46 +127,46 @@ typedef enum {
 } AnimationType;
 
 typedef struct {
-    /* 0x000 */ DmaRequest req;
-    /* 0x020 */ OSMesgQueue msgQueue;
-    /* 0x038 */ OSMesg msg;
+    /* 0x00 */ DmaRequest req;
+    /* 0x20 */ OSMesgQueue msgQueue;
+    /* 0x38 */ OSMesg msg;
 } AnimEntryLoadFrame; // size = 0x3C
 
 typedef struct {
-    /* 0x000 */ u8 queueFlag;
-    /* 0x001 */ u8 vecCount;
-    /* 0x004 */ Vec3s* dst;
-    /* 0x008 */ Vec3s* src;
+    /* 0x00 */ u8 queueFlag;
+    /* 0x01 */ u8 vecCount;
+    /* 0x04 */ Vec3s* dst;
+    /* 0x08 */ Vec3s* src;
 } AnimEntryCopyAll; // size = 0xC
 
 typedef struct {
-    /* 0x000 */ u8 queueFlag;
-    /* 0x001 */ u8 vecCount;
-    /* 0x004 */ Vec3s* base;
-    /* 0x008 */ Vec3s* mod;
-    /* 0x00C */ f32 weight;
+    /* 0x00 */ u8 queueFlag;
+    /* 0x01 */ u8 vecCount;
+    /* 0x04 */ Vec3s* base;
+    /* 0x08 */ Vec3s* mod;
+    /* 0x0C */ f32 weight;
 } AnimEntryInterp; // size = 0x10
 
 typedef struct {
-    /* 0x000 */ u8 queueFlag;
-    /* 0x001 */ u8 vecCount;
-    /* 0x004 */ Vec3s* dst;
-    /* 0x008 */ Vec3s* src;
-    /* 0x00C */ u8* copyFlag;
+    /* 0x00 */ u8 queueFlag;
+    /* 0x01 */ u8 vecCount;
+    /* 0x04 */ Vec3s* dst;
+    /* 0x08 */ Vec3s* src;
+    /* 0x0C */ u8* copyFlag;
 } AnimEntryCopyTrue; // size = 0x10
 
 typedef struct {
-    /* 0x000 */ u8 queueFlag;
-    /* 0x001 */ u8 vecCount;
-    /* 0x004 */ Vec3s* dst;
-    /* 0x008 */ Vec3s* src;
-    /* 0x00C */ u8* copyFlag;
+    /* 0x00 */ u8 queueFlag;
+    /* 0x01 */ u8 vecCount;
+    /* 0x04 */ Vec3s* dst;
+    /* 0x08 */ Vec3s* src;
+    /* 0x0C */ u8* copyFlag;
 } AnimEntryCopyFalse; // size = 0x10
 
 typedef struct {
-    /* 0x000 */ struct Actor* actor;
-    /* 0x004 */ struct SkelAnime* skelAnime;
-    /* 0x008 */ f32 unk_08;
+    /* 0x00 */ struct Actor* actor;
+    /* 0x04 */ struct SkelAnime* skelAnime;
+    /* 0x08 */ f32 unk_08;
 } AnimEntryMoveActor; // size = 0xC
 
 typedef union {
@@ -184,55 +184,55 @@ typedef struct {
 } AnimationEntry; // size = 0x40
 
 typedef struct AnimationContext {
-    s16 animationCount;
-    AnimationEntry entries[ANIMATION_ENTRY_MAX];
+    /* 0x000 */ s16 animationCount;
+    /* 0x004 */ AnimationEntry entries[ANIMATION_ENTRY_MAX];
 } AnimationContext; // size = 0xC84
 
 typedef void (*AnimationEntryCallback)(struct GlobalContext* globalCtx, AnimationEntryData* data);
 
 // fcurve_skelanime structs
 typedef struct {
-    /* 0x0000 */ u16 flags;
-    /* 0x0002 */ s16 frame;
-    /* 0x0004 */ s16 endVel;
-    /* 0x0006 */ s16 startVel;
-    /* 0x0008 */ f32 value;
+    /* 0x00 */ u16 flags;
+    /* 0x02 */ s16 frame;
+    /* 0x04 */ s16 endVel;
+    /* 0x06 */ s16 startVel;
+    /* 0x08 */ f32 value;
 } SkelCurveFrame; // size = 0xC
 
 typedef struct {
-    /* 0x0000 */ u8* refIndex;
-    /* 0x0004 */ SkelCurveFrame* keyFrames;
-    /* 0x0008 */ s16* staticData;
-    /* 0x000C */ s16 unk_0C;                // set to 1 in all existing animations
-    /* 0x000E */ s16 frameCount;            // never used
+    /* 0x00 */ u8* refIndex;
+    /* 0x04 */ SkelCurveFrame* keyFrames;
+    /* 0x08 */ s16* staticData;
+    /* 0x0C */ s16 unk_0C;                // set to 1 in all existing animations
+    /* 0x0E */ s16 frameCount;            // never used
 } CurveAnimationHeader; // size 0x10
 
 typedef struct {
-    /* 0x0000 */ u8 child;
-    /* 0x0001 */ u8 sibling;
-    /* 0x0004 */ Gfx* dList[2];
+    /* 0x00 */ u8 child;
+    /* 0x01 */ u8 sibling;
+    /* 0x04 */ Gfx* dList[2];
 } SkelCurveLimb; // size >= 0x8
 
 typedef struct {
-    /* 0x0000 */ SkelCurveLimb** limbs;
-    /* 0x0004 */ u8 limbCount;
+    /* 0x00 */ SkelCurveLimb** limbs;
+    /* 0x04 */ u8 limbCount;
 } SkelCurveHeader; // size = 0x8
 
 typedef struct {
-    /* 0x0000 */ Vec3s scale;
-    /* 0x0006 */ Vec3s rot;
-    /* 0x000C */ Vec3s pos;
+    /* 0x00 */ Vec3s scale;
+    /* 0x06 */ Vec3s rot;
+    /* 0x0C */ Vec3s pos;
 } LimbTransform; // size = 0x12
 
 typedef struct {
-    /* 0x0000 */ u8 limbCount;                      // Number of limbs in the curve skeleton
-    /* 0x0004 */ SkelCurveLimb** limbs;             // Array of pointers to the individual limbs
-    /* 0x0008 */ CurveAnimationHeader* curveAnim;   // Header for current animation
-    /* 0x000C */ f32 unk_0C;                        // seems to be unused
-    /* 0x0010 */ f32 endFrame;                      // Update returns true when this frame is reached
-    /* 0x0014 */ f32 playSpeed;                     // Multiplied by R_UPDATE_RATE / 2 to get frame rate
-    /* 0x0018 */ f32 curFrame;                      // Current frame in the animation
-    /* 0x001C */ LimbTransform* transforms;         // Scale, rot, and pos of each limb relative to its parent
+    /* 0x00 */ u8 limbCount;                      // Number of limbs in the curve skeleton
+    /* 0x04 */ SkelCurveLimb** limbs;             // Array of pointers to the individual limbs
+    /* 0x08 */ CurveAnimationHeader* curveAnim;   // Header for current animation
+    /* 0x0C */ f32 unk_0C;                        // seems to be unused
+    /* 0x10 */ f32 endFrame;                      // Update returns true when this frame is reached
+    /* 0x14 */ f32 playSpeed;                     // Multiplied by R_UPDATE_RATE / 2 to get frame rate
+    /* 0x18 */ f32 curFrame;                      // Current frame in the animation
+    /* 0x1C */ LimbTransform* transforms;         // Scale, rot, and pos of each limb relative to its parent
 } SkelAnimeCurve; // size = 0x20
 
 typedef s32 (*OverrideCurveLimbDraw)(struct GlobalContext* globalCtx, SkelAnimeCurve* skelCurve, s32 limbIndex, void*);
