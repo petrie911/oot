@@ -218,6 +218,11 @@ typedef struct {
     /* 0x04 */ u8 limbCount;
 } SkelCurveHeader; // size = 0x8
 
+// here for ZAP compatibility
+typedef SkelCurveHeader SkelCurveLimbList;
+typedef SkelCurveFrame TransformData;
+typedef CurveAnimationHeader TransformUpdateIndex;
+
 typedef struct {
     /* 0x00 */ Vec3s scale;
     /* 0x06 */ Vec3s rot;
